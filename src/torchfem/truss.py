@@ -27,12 +27,21 @@ class Truss(FEM):
         else:
             raise ValueError("Element type not supported.")
 
+        # Initialize characteristic lengths
+        start_nodes = self.nodes[self.elements[:, 0]]
+        end_nodes = self.nodes[self.elements[:, 1]]
+        self.char_lengths = torch.linalg.norm(end_nodes - start_nodes, dim=-1)
+
         # Set element type specific sizes
         self.n_stress = 1
         self.n_int = len(self.etype.iweights())
 
         # Initialize external strain
         self.ext_strain = torch.zeros(self.n_elem, 1, 1)
+
+    def __repr__(self) -> str:
+        etype = self.etype.__class__.__name__
+        return f"<torch-fem truss ({self.n_nod} nodes, {self.n_elem} {etype} elements)>"
 
     def eval_shape_functions(
         self, xi: Tensor, u: Tensor | float = 0.0
@@ -66,11 +75,11 @@ class Truss(FEM):
         """Element internal force vector."""
         return torch.einsum("...,...,...ik,...ij->...kj", self.areas, detJ, B, S)
 
-    def plot(self, **kwargs):
+    def plot(self, u: float | Tensor = 0.0, **kwargs):
         if self.n_dim == 2:
-            self.plot2d(**kwargs)
+            self.plot2d(u=u, **kwargs)
         elif self.n_dim == 3:
-            self.plot3d(**kwargs)
+            self.plot3d(u=u, **kwargs)
 
     @torch.no_grad()
     def plot2d(

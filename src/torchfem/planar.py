@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import torch
 from matplotlib.axes import Axes
 from matplotlib.collections import PolyCollection
+from matplotlib.tri import Triangulation
 from torch import Tensor
 
 from .base import FEM
@@ -30,12 +31,22 @@ class Planar(FEM):
         else:
             raise ValueError("Element type not supported.")
 
+        # Initialize characteristic lengths
+        areas = self.integrate_field()
+        self.char_lengths = areas**0.5
+
         # Set element type specific sizes
         self.n_stress = 2
         self.n_int = len(self.etype.iweights())
 
         # Initialize external strain
         self.ext_strain = torch.zeros(self.n_elem, 2, 2)
+
+    def __repr__(self) -> str:
+        etype = self.etype.__class__.__name__
+        return (
+            f"<torch-fem planar ({self.n_nod} nodes, {self.n_elem} {etype} elements)>"
+        )
 
     def eval_shape_functions(
         self, xi: Tensor, u: Tensor | float = 0.0
@@ -101,10 +112,9 @@ class Planar(FEM):
                     triangles.append([e[2], e[3], e[0]])
             else:
                 triangles = self.elements[:, :3].tolist()
+            triangulation = Triangulation(pos[:, 0], pos[:, 1], triangles)
             tri = ax.tricontourf(
-                pos[:, 0],
-                pos[:, 1],
-                triangles,
+                triangulation,
                 node_property,
                 cmap=cmap,
                 levels=100,

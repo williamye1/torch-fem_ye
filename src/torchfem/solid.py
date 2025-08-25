@@ -25,12 +25,20 @@ class Solid(FEM):
         else:
             raise ValueError("Element type not supported.")
 
+        # Initialize characteristic lengths
+        vols = self.integrate_field()
+        self.char_lengths = vols ** (1 / 3)
+
         # Set element type specific sizes
         self.n_stress = 3
         self.n_int = len(self.etype.iweights())
 
         # Initialize external strain
         self.ext_strain = torch.zeros(self.n_elem, 3, 3)
+
+    def __repr__(self) -> str:
+        etype = self.etype.__class__.__name__
+        return f"<torch-fem solid ({self.n_nod} nodes, {self.n_elem} {etype} elements)>"
 
     def eval_shape_functions(
         self, xi: Tensor, u: Tensor | float = 0.0

@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Added 
+- Added new example geometry (*.vtu) of a quarter symmetric plate.
+- Added two new solid examples "isotropic_damage.ipynb" and "plate_damage.ipynb"
+- Add simple damage model 'IsotropicDamage3D'.
+- \_\_repr\_\_ functions to print torch-fem objects.
+
+### Changed 
+- Material 'step' functions get an additional input 'cl' for the characteristic length of each element. This can be used for regularization in damage models.
+- Accelerate 'linear_to_quadratic()' function for elements.
+- Planar plot uses explicit triangulation objects.
+- Truss plot accepts u as positional argument to match base class.
+
 ## Version 0.4.4 - June 04 2025 
 
 ### Changed
